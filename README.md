@@ -2,7 +2,7 @@
 
 ![Daily Dog](https://i.imgur.com/0Uzt9VB.png)
 
-> Get a Dog GIF delivered to a Slack channel every morning
+> Get a Dog GIF delivered to a Slack channel whenever you like
 
 ### Building with Docker
 
