@@ -7,7 +7,7 @@
 ### Building with Docker
 
 * `docker build -t dailydog .` _\# If you want to set a global env for SLACK_WEBHOOK, edit the Dockerfile_
-* `docker run -e "SLACK_WEBHOOK=https://hooks.slack.com/services/SOME_WEBHOOK/CREATED_IN/SLACK" dailydog:latest`
+* `docker run -e "SLACK_WEBHOOK=https://hooks.slack.com/services/SOME_WEBHOOK/CREATED_IN/SLACK" -p 3000:3000 dailydog:latest`
 
 ### Building with "go build"
 
