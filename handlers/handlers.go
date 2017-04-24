@@ -7,7 +7,7 @@ package handlers
 import (
   "fmt"
   "log"
-  "github.com/james2doyle/dailydog/endpoint"
+  "github.com/james2doyle/dailydog/webhook"
   "github.com/julienschmidt/httprouter"
   "github.com/tidwall/gjson"
   "io/ioutil"
@@ -17,9 +17,6 @@ import (
 )
 
 func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-  w.WriteHeader(http.StatusOK)
-  w.Header().Set("Content-Type", "application/json")
-
   // Setup the environment
   dogJson := os.Getenv("DOG_JSON")
   if dogJson == "" {
@@ -40,42 +37,50 @@ func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
   client := &http.Client{Transport: tr}
   resp, err := client.Get(dogJson)
   if err != nil {
-    handleError(w, slackWebhook, err)
+    panic(err)
   }
 
   defer resp.Body.Close()
 
   if err != nil {
-    handleError(w, slackWebhook, err)
+    panic(err)
   }
 
   body, err := ioutil.ReadAll(resp.Body)
   if err != nil {
-    handleError(w, slackWebhook, err)
+    panic(err)
   }
 
   value := gjson.GetBytes(body, "data.image_url")
 
-  status := endpoint.Post(true, slackWebhook, value.String())
+  status := webhook.Post(true, slackWebhook, value.String())
 
-  fmt.Fprintf(w, status)
+  w.Header().Set("Content-Type", "application/json")
+  w.WriteHeader(http.StatusOK)
+  fmt.Fprintf(w, string(status))
 }
 
 // MethodNotAllowed renders a method not allowed response for invalid request
 // types.
 func MethodNotAllowed(w http.ResponseWriter, r *http.Request) {
+  w.Header().Set("Content-Type", "application/json")
   w.WriteHeader(http.StatusMethodNotAllowed)
+  resp := webhook.Panic("Method Not Allowed")
+  fmt.Fprintf(w, string(resp))
 }
 
 // NotFound renders a not found response for invalid API endpoints.
 func NotFound(w http.ResponseWriter, r *http.Request) {
+  w.Header().Set("Content-Type", "application/json")
   w.WriteHeader(http.StatusNotFound)
+  resp := webhook.Panic("Not Found")
+  fmt.Fprintf(w, string(resp))
 }
 
-func handleError(w http.ResponseWriter, slackWebhook string, err error) {
-  log.Println(err)
-  panic(err)
+func PanicHandler(w http.ResponseWriter, r *http.Request, rcv interface{}) {
+  w.Header().Set("Content-Type", "application/json")
   w.WriteHeader(http.StatusInternalServerError)
-  status := endpoint.Post(false, slackWebhook, err.Error())
-  fmt.Fprintf(w, status)
+  log.Println("Panic:", rcv)
+  resp := webhook.Panic(rcv)
+  fmt.Fprintf(w, string(resp))
 }

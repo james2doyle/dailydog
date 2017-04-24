@@ -10,3 +10,11 @@ type Webhook struct {
   IconUrl string `json:"icon_url"` // "https://i.imgur.com/0Uzt9VB.png"
   Text string `json:"text"` // "<https://i.imgur.com/0Uzt9VB.png|View Photo>\nThis is a line of text in a channel."
 }
+
+type SlackResponse struct {
+  Status string `json:"status"`
+}
+
+type PanicResponse struct {
+  Message string `json:"message"`
+}

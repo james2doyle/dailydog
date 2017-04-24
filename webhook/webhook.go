@@ -2,7 +2,7 @@
 //
 // The general function to post to Slack
 
-package endpoint
+package webhook
 
 import (
   "bytes"
@@ -13,7 +13,7 @@ import (
   "net/http"
 )
 
-func Post(status bool, hook, messageAddon string) string {
+func Post(status bool, hook, messageAddon string) []byte {
   var message string
   if status {
     message = fmt.Sprintf("*Woof!* Here is your daily dog!\n<%s|View This GIF>", messageAddon)
@@ -40,5 +40,23 @@ func Post(status bool, hook, messageAddon string) string {
     panic(err)
   }
 
-  return fmt.Sprintf("{\"status\": \"%s\"}", body)
+  result := models.SlackResponse{string(body)}
+
+  jsonResponse, err := json.Marshal(result)
+  if err != nil {
+    panic(err)
+  }
+
+  return jsonResponse
+}
+
+func Panic(message interface {}) []byte {
+  result := models.PanicResponse{fmt.Sprintf("%s", message)}
+
+  jsonResponse, err := json.Marshal(result)
+  if err != nil {
+    panic(err)
+  }
+
+  return jsonResponse
 }

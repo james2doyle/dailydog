@@ -23,6 +23,7 @@ func main() {
   // Setup 404 / 405 handlers.
   router.NotFound = http.HandlerFunc(handlers.NotFound)
   router.MethodNotAllowed = http.HandlerFunc(handlers.MethodNotAllowed)
+  router.PanicHandler = handlers.PanicHandler
 
   // Setup middlewares
   handler := cors.Default().Handler(router)
@@ -34,6 +35,6 @@ func main() {
   }
 
   log.Println("Starting HTTP server on port:", port)
-  log.Fatal(http.ListenAndServe(":"+port, handler))
+  log.Fatal(http.ListenAndServe(":" + port, handler))
 
 }
