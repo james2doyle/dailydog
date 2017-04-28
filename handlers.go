@@ -2,11 +2,10 @@
 //
 // The handlers for the routes
 
-package handlers
+package main
 
 import (
 	"fmt"
-	"github.com/james2doyle/dailydog/webhook"
 	"github.com/julienschmidt/httprouter"
 	"github.com/tidwall/gjson"
 	"io/ioutil"
@@ -16,7 +15,7 @@ import (
 	"time"
 )
 
-func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func HandleIndex(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	// Setup the environment
 	dogJson := os.Getenv("DOG_JSON")
 	if dogJson == "" {
@@ -24,10 +23,8 @@ func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		dogJson = "https://api.giphy.com/v1/gifs/random?api_key=dc6zaTOxFJmzC&tag=dog"
 	}
 
+	// we know this exists - because we got this far
 	slackWebhook := os.Getenv("SLACK_WEBHOOK")
-	if slackWebhook == "" {
-		log.Println("Error: you need to assign a `SLACK_WEBHOOK` environment variable.")
-	}
 
 	tr := &http.Transport{
 		MaxIdleConns:    10,
@@ -53,7 +50,7 @@ func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 	value := gjson.GetBytes(body, "data.image_url")
 
-	status := webhook.Post(true, slackWebhook, value.String())
+	status := WebhookPost(true, slackWebhook, value.String())
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -65,7 +62,7 @@ func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 func MethodNotAllowed(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusMethodNotAllowed)
-	resp := webhook.Panic("Method Not Allowed")
+	resp := WebhookPanic("Method Not Allowed")
 	fmt.Fprintf(w, string(resp))
 }
 
@@ -73,14 +70,15 @@ func MethodNotAllowed(w http.ResponseWriter, r *http.Request) {
 func NotFound(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusNotFound)
-	resp := webhook.Panic("Not Found")
+	resp := WebhookPanic("Not Found")
 	fmt.Fprintf(w, string(resp))
 }
 
-func PanicHandler(w http.ResponseWriter, r *http.Request, rcv interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusInternalServerError)
-	log.Println("Panic:", rcv)
-	resp := webhook.Panic(rcv)
-	fmt.Fprintf(w, string(resp))
-}
+// func PanicHandler(w http.ResponseWriter, r *http.Request, rcv interface{}) {
+// 	w.Header().Set("Content-Type", "application/json")
+// 	w.WriteHeader(http.StatusInternalServerError)
+// 	log.Println("Panic:", rcv)
+// 	rcv = recover()
+// 	resp := WebhookPanic(rcv)
+// 	fmt.Fprintf(w, string(resp))
+// }

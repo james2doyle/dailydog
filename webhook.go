@@ -2,18 +2,32 @@
 //
 // The general function to post to Slack
 
-package webhook
+package main
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/james2doyle/dailydog/models"
 	"io/ioutil"
 	"net/http"
 )
 
-func Post(status bool, hook, messageAddon string) []byte {
+// WebhookData is a struct we use to represent JSON API responses.
+type WebhookData struct {
+	Username string `json:"username"` // "Daily Dog"
+	IconUrl  string `json:"icon_url"` // "https://i.imgur.com/0Uzt9VB.png"
+	Text     string `json:"text"`     // "<https://i.imgur.com/0Uzt9VB.png|View Photo>\nThis is a line of text in a channel."
+}
+
+type SlackResponse struct {
+	Status string `json:"status"`
+}
+
+type PanicResponse struct {
+	Message string `json:"message"`
+}
+
+func WebhookPost(status bool, hook, messageAddon string) []byte {
 	var message string
 	if status {
 		message = fmt.Sprintf("*Woof!* Here is your daily dog!\n<%s|View This GIF>", messageAddon)
@@ -21,14 +35,18 @@ func Post(status bool, hook, messageAddon string) []byte {
 		message = fmt.Sprintf("*Oops!* There was an error fetching your dailydog.\n%s", messageAddon)
 	}
 
-	data := models.Webhook{
+	data := WebhookData{
 		Username: "Daily Dog",
 		IconUrl:  "https://i.imgur.com/0Uzt9VB.png",
 		Text:     message,
 	}
 
-	buffer := new(bytes.Buffer)
-	json.NewEncoder(buffer).Encode(data)
+	output, err := json.Marshal(data)
+	if err != nil {
+		panic(err)
+	}
+
+	buffer := bytes.NewReader(output)
 
 	resp, err := http.Post(hook, "application/json; charset=utf-8", buffer)
 	if err != nil {
@@ -40,7 +58,7 @@ func Post(status bool, hook, messageAddon string) []byte {
 		panic(err)
 	}
 
-	result := models.SlackResponse{string(body)}
+	result := SlackResponse{Status: string(body)}
 
 	jsonResponse, err := json.Marshal(result)
 	if err != nil {
@@ -50,8 +68,8 @@ func Post(status bool, hook, messageAddon string) []byte {
 	return jsonResponse
 }
 
-func Panic(message interface{}) []byte {
-	result := models.PanicResponse{fmt.Sprintf("%s", message)}
+func WebhookPanic(message string) []byte {
+	result := PanicResponse{Message: fmt.Sprintf("%s", message)}
 
 	jsonResponse, err := json.Marshal(result)
 	if err != nil {
