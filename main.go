@@ -5,8 +5,6 @@
 package main
 
 import (
-	"github.com/julienschmidt/httprouter"
-	"github.com/rs/cors"
 	"log"
 	"net/http"
 	"os"
@@ -17,21 +15,12 @@ func main() {
 
 	slackWebhook := os.Getenv("SLACK_WEBHOOK")
 	if slackWebhook == "" {
-		log.Println("Error: you need to assign a `SLACK_WEBHOOK` environment variable.")
-		os.Exit(1)
+		log.Fatal("\033[0;31mError: you need to assign a `SLACK_WEBHOOK` environment variable.\033[0m")
 	}
 
 	// Setup all routes.  We only service API requests, so this is basic.
-	router := httprouter.New()
-	router.GET("/", HandleIndex)
-
-	// Setup 404 / 405 handlers.
-	router.NotFound = http.HandlerFunc(NotFound)
-	router.MethodNotAllowed = http.HandlerFunc(MethodNotAllowed)
-	// router.PanicHandler = PanicHandler
-
-	// Setup middlewares
-	handler := cors.Default().Handler(router)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", HandleIndex)
 
 	// Start the server.
 	port := os.Getenv("PORT")
@@ -40,6 +29,6 @@ func main() {
 	}
 
 	log.Println("Starting HTTP server on port:", port)
-	log.Fatal(http.ListenAndServe(":" + port, handler))
+	log.Fatal(http.ListenAndServe(":"+port, mux))
 
 }

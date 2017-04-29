@@ -23,11 +23,7 @@ type SlackResponse struct {
 	Status string `json:"status"`
 }
 
-type PanicResponse struct {
-	Message string `json:"message"`
-}
-
-func WebhookPost(status bool, hook, messageAddon string) []byte {
+func WebhookPost(status bool, hook, messageAddon string) SlackResponse {
 	var message string
 	if status {
 		message = fmt.Sprintf("*Woof!* Here is your daily dog!\n<%s|View This GIF>", messageAddon)
@@ -43,38 +39,22 @@ func WebhookPost(status bool, hook, messageAddon string) []byte {
 
 	output, err := json.Marshal(data)
 	if err != nil {
-		panic(err)
+		return SlackResponse{Status: err.Error()}
 	}
 
 	buffer := bytes.NewReader(output)
 
 	resp, err := http.Post(hook, "application/json; charset=utf-8", buffer)
 	if err != nil {
-		panic(err)
+		return SlackResponse{Status: err.Error()}
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		panic(err)
+		return SlackResponse{Status: err.Error()}
 	}
 
 	result := SlackResponse{Status: string(body)}
 
-	jsonResponse, err := json.Marshal(result)
-	if err != nil {
-		panic(err)
-	}
-
-	return jsonResponse
-}
-
-func WebhookPanic(message string) []byte {
-	result := PanicResponse{Message: fmt.Sprintf("%s", message)}
-
-	jsonResponse, err := json.Marshal(result)
-	if err != nil {
-		panic(err)
-	}
-
-	return jsonResponse
+	return result
 }
