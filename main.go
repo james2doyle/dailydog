@@ -10,9 +10,8 @@ import (
 	"os"
 )
 
-// main launches our web server which runs indefinitely.
+// main -- launches our web server which runs indefinitely.
 func main() {
-
 	slackWebhook := os.Getenv("SLACK_WEBHOOK")
 	if slackWebhook == "" {
 		log.Fatal("\033[0;31mError: you need to assign a `SLACK_WEBHOOK` environment variable.\033[0m")
@@ -30,5 +29,4 @@ func main() {
 
 	log.Println("Starting HTTP server on port:", port)
 	log.Fatal(http.ListenAndServe(":"+port, mux))
-
 }

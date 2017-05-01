@@ -12,17 +12,19 @@ import (
 	"net/http"
 )
 
-// WebhookData is a struct we use to represent JSON API responses.
+// WebhookData -- the struct for the JSON that is sent to the Slack endpoint
 type WebhookData struct {
 	Username string `json:"username"` // "Daily Dog"
-	IconUrl  string `json:"icon_url"` // "https://i.imgur.com/0Uzt9VB.png"
+	IconURL  string `json:"icon_url"` // "https://i.imgur.com/0Uzt9VB.png"
 	Text     string `json:"text"`     // "<https://i.imgur.com/0Uzt9VB.png|View Photo>\nThis is a line of text in a channel."
 }
 
+// SlackResponse -- structure of the JSON response from the Slack Webhook API
 type SlackResponse struct {
 	Status string `json:"status"`
 }
 
+// WebhookPost -- the function that handles the call to the Slack Webhook
 func WebhookPost(status bool, hook, messageAddon string) SlackResponse {
 	var message string
 	if status {
@@ -33,7 +35,7 @@ func WebhookPost(status bool, hook, messageAddon string) SlackResponse {
 
 	data := WebhookData{
 		Username: "Daily Dog",
-		IconUrl:  "https://i.imgur.com/0Uzt9VB.png",
+		IconURL:  "https://i.imgur.com/0Uzt9VB.png",
 		Text:     message,
 	}
 

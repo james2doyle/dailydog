@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-type JSONResponse struct {
+type jsonResponse struct {
 	Status  int    `json:"status"`
 	Message string `json:"message"`
 }
@@ -45,16 +45,17 @@ func WriteJSON(w http.ResponseWriter, v interface{}, status int) {
 // 	{"error": "...your error message..."}
 //
 func JSONError(w http.ResponseWriter, errStr string, status int) {
-	v := JSONResponse{Status: status, Message: errStr}
+	v := jsonResponse{Status: status, Message: errStr}
 	WriteJSON(w, v, status)
 }
 
+// HandleIndex -- the main function for all routes
 func HandleIndex(w http.ResponseWriter, req *http.Request) {
 	// Setup the environment
-	dogJson := os.Getenv("DOG_JSON")
-	if dogJson == "" {
+	dogJSON := os.Getenv("DOG_JSON")
+	if dogJSON == "" {
 		log.Println("\033[0;36mInfo: using the default GIPHY API to fetch a random dog.\033[0m")
-		dogJson = "https://api.giphy.com/v1/gifs/random?api_key=dc6zaTOxFJmzC&tag=dog"
+		dogJSON = "https://api.giphy.com/v1/gifs/random?api_key=dc6zaTOxFJmzC&tag=dog"
 	}
 
 	// we know this exists - because we got this far
@@ -66,7 +67,7 @@ func HandleIndex(w http.ResponseWriter, req *http.Request) {
 	}
 
 	client := &http.Client{Transport: tr}
-	resp, err := client.Get(dogJson)
+	resp, err := client.Get(dogJSON)
 	if err != nil {
 		JSONError(w, err.Error(), http.StatusInternalServerError)
 	}
